@@ -277,7 +277,6 @@ function F!(du,u,t,p_F)
     par_Dp = (Np, dp, dvp)
     get_current!(u,S,par)
     F = reshape(u,(Nx,Np+1))
-    
     #du .= 0.0 # no es necesario pues toma valores en el primer loop.
     dF = reshape(du,(Nx,Np+1))
     for j ∈ 1:Np
@@ -302,7 +301,7 @@ function landau_rel_dist(x,p,pars)
     WARNING THEY ARE NOT NORMALIZED!
 """
 function landau_rel_dist(x,p,pars)
-    θ, m, α, k = pars 
+    m, θ, α, k = pars 
     return thermal_rel_dist(x, p, (m, θ)) * (1. + α *cos(k*x))
 end
 
@@ -312,8 +311,19 @@ function thermal_rel_dist(p, θ = 1, m = 1)
 """
 function thermal_rel_dist(x, p, (m, θ))
     γ = sqrt(1+p^2/m^2)
-    return exp(- γ/θ)/4/π/m^3
+    return exp(- γ/θ)/4/π/m
     #falta la función de Bessel!
+end
+
+"""
+counter_streams_rel_dist(x, p, (m, θ, v))
+    we make a double peaked distribution around velocities u = gamma_v(1, +,-v)
+"""
+function counter_streams_rel_dist(x, p, (m, θ, v))
+    p = p/m
+    γ = sqrt(1+p^2)
+    γv = 1/sqrt(1-v^2)
+    return (exp(- γv*(γ + v*p)/θ) + exp(- γv*(γ - v*p)/θ))/8/π/m
 end
 
 
