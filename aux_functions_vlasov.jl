@@ -310,7 +310,7 @@ function thermal_rel_dist(p, θ = 1, m = 1)
     WARNING THEY ARE NOT NORMALIZED!
 """
 function thermal_rel_dist(x, p, (m, θ))
-    γ = sqrt(1+p^2/m^2)
+    γ = sqrt(1+p^2/m^2) - 1
     return exp(- γ/θ)/4/π/m
     #falta la función de Bessel!
 end
@@ -323,7 +323,7 @@ function counter_streams_rel_dist(x, p, (m, θ, v))
     p = p/m
     γ = sqrt(1+p^2)
     γv = 1/sqrt(1-v^2)
-    return (exp(- γv*(γ + v*p)/θ) + exp(- γv*(γ - v*p)/θ))/8/π/m
+    return (exp(- γv*(γ + v*p)/θ) + exp(- γv*(γ - v*p)/θ))*exp(1/θ)/8/π/m
 end
 
 
