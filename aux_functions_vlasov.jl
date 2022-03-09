@@ -17,9 +17,11 @@ get_p(j,dp,Np) = (j - (Np+1)÷ 2) * dp
 
 function D2x_Per(v,par_Dx)
     N, dx, dv = par_Dx
-    for i in 1:N
+    dv[1] = (v[2] - v[N])/dx/2
+    for i in 2:(N-1)
         dv[i] = (v[mod1((i+1), N)] - v[mod1((i + N -1), N)])/dx/2
     end
+    dv[N] = (v[1] - v[N-1])/dx/2
     return dv[:]
 end
 
@@ -95,13 +97,13 @@ end
 ##################################### CURRENT AND DENSITY #################################
 
 function get_current!(u,S,par)
-    Nx, dx, Np, dp, m, e = par
+    Nx, dx, Np, dp, v, m, e = par
     F = reshape(u,(Nx,Np+1))
     for i in 1:Nx
         S[i] = 0
         for j in 1:Np
-            p = get_p(j, dp, Np)/m
-            S[i] += e * F[i,j]* p/sqrt(1+p^2) * dp
+            #p = get_p(j, dp, Np)/m
+            S[i] += e * F[i,j]* v[j] * dp
         end
     end
     return S
@@ -185,6 +187,7 @@ function RK4_Step!(f,y0,t0,h,p_f,par_RK)
     k3 = h*f(k3,y0+0.5*k2, t0+0.5*h,p_f)
     k4 = h*f(k4,y0+k3, t0+h,p_f)
     y0 .= y0 + (k1 + 2k2 + 2k3 + k4)/6
+    return y0
 end
 
 function ODEproblem(Method, f, y0, intervalo, M,p)
@@ -264,25 +267,27 @@ end
 ##################################################### EVOLUTION FUNCTION #################################################
 """
 Función RHS both, for f and E. 
+We include as parameters some vector for holding data and also the velocity vector which is 
+given once and for all. v = p/m/sqrt(1+(p/m)^2)
 """
 function F!(du,u,t,p_F)
-    dx, dp, Nx, Np, S, dvx, dvp = p_F 
-    par = (Nx, dx, Np, dp, m, e)
+    dx, dp, Nx, Np, v, S, dvx, dvp = p_F 
+    par = (Nx, dx, Np, dp, v, m, e)
     par_Dx = (Nx, dx, dvx)
     par_Dp = (Np, dp, dvp)
     get_current!(u,S,par)
     F = reshape(u,(Nx,Np+1))
+    
+    #du .= 0.0 # no es necesario pues toma valores en el primer loop.
     dF = reshape(du,(Nx,Np+1))
-    du .= 0.0
     for j ∈ 1:Np
-        p = get_p(j, dp, Np)/m
-        dF[:,j] = - p/sqrt(1+ p^2) * D2x_Per(F[:,j], par_Dx)
+        dF[:,j] = - v[j] * D2x_Per(F[:,j], par_Dx)
     end
     for i ∈ 1:Nx
-        dF[i,1:Np] +=  e * F[i,Np+1] * D2x_SBP(F[i,1:Np], par_Dp) 
-        dF[i,Np+1] =  4* 4π * S[i] 
+        dF[i,1:Np] += - e * F[i,Np+1] * D2x_SBP(F[i,1:Np], par_Dp) 
+        dF[i,Np+1] =  - 4π * S[i] 
     end
-    return du
+    return du[:]
 end
 
 
