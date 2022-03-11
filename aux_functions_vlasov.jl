@@ -101,7 +101,7 @@ function get_current!(u,S,par)
     F = reshape(u,(Nx,Np+1))
     for i in 1:Nx
         S[i] = 0
-        for j in 1:Np
+        @inbounds for j in 1:Np
             #p = get_p(j, dp, Np)/m
             S[i] += e * F[i,j]* v[j] * dp
         end
@@ -279,10 +279,10 @@ function F!(du,u,t,p_F)
     F = reshape(u,(Nx,Np+1))
     #du .= 0.0 # no es necesario pues toma valores en el primer loop.
     dF = reshape(du,(Nx,Np+1))
-    for j ∈ 1:Np
+    @inbounds for j ∈ 1:Np
         dF[:,j] = - v[j] * D2x_Per(F[:,j], par_Dx)
     end
-    for i ∈ 1:Nx
+    @inbounds for i ∈ 1:Nx
         dF[i,1:Np] += - e * F[i,Np+1] * D2x_SBP(F[i,1:Np], par_Dp) 
         dF[i,Np+1] =  - 4π * S[i] 
     end
