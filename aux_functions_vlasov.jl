@@ -211,11 +211,11 @@ end
 """
 Plots the values of a matrix as a surface plot.
 """
-function plot_matrix(A,fc = :ocean, linealpha = 0.3, fillalpha = 0.5, camera = (60,40))
+function plot_matrix(A::Matrix{Float64}; fc=:ocean, linealpha=0.3, fillalpha=0.5, camera=(60,40))
     default(size=(600,600)
 #, fc=:thermal
 #, fc=:heat
-    , fc=:ocean
+    , fc=fc
     )
     if !(ndims(A) == 2) 
         error("Array must be 2 dimensional and seems to be of dims = $(ndims(A))")
@@ -223,7 +223,7 @@ function plot_matrix(A,fc = :ocean, linealpha = 0.3, fillalpha = 0.5, camera = (
     (n,m) = size(A)
     x, y = 1:n, 1:m
     z = Surface((x,y)->A[x,y], x, y)
-    surface(x,y,z, linealpha = 0.3, fillalpha=0.5, display_option=Plots.GR.OPTION_SHADED_MESH, camera=(60,40))
+    surface(x,y,z, linealpha = linealpha, fillalpha=fillalpha, display_option=Plots.GR.OPTION_SHADED_MESH, camera=camera)
 end
 
 
