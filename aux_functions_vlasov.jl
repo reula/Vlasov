@@ -1,3 +1,12 @@
+using Distributed
+using DistributedArrays
+using DistributedArrays.SPMD
+@everywhere using Distributed
+@everywhere using DistributedArrays
+@everywhere using DistributedArrays.SPMD
+
+
+
 # Derivadas
 
 """
@@ -13,27 +22,7 @@ gives the value of p symmetric around zero
 get_p(j,dp,Np) = (j - (Np+1)÷ 2) * dp 
 
 
-################################## FINITE DIFERENCE OPERATORS #######
-
-function D2x_Per(v,par_Dx)
-    N, dx, dv = par_Dx
-    dv[1] = (v[2] - v[N])/dx/2
-    for i in 2:(N-1)
-        dv[i] = (v[mod1((i+1), N)] - v[mod1((i + N -1), N)])/dx/2
-    end
-    dv[N] = (v[1] - v[N-1])/dx/2
-    return dv[:]
-end
-
-function D2x_SBP(v,par_Dx)
-    N, dx, dv = par_Dx
-    dv[1] = (v[2] - v[1])/dx
-    for j in 2:(N-1)
-        dv[j] = (v[j+1] - v[j-1])/dx/2
-    end
-    dv[N] = (v[N] - v[N-1])/dx
-    return dv[:]
-end
+include("derivs.jl")
 
 ################################ CONSTRAINTS #################################
 
@@ -77,7 +66,7 @@ function get_ϕ!(ϕ, ρ, κ)
 
   V[1] =  0.
   for j in  2:(J÷2+1)
-    V[j] = 4 * π * V[j] / (j-1)^2 / κ^2
+    V[j] =  V[j] / (j-1)^2 / κ^2
   end
 
   # Inverse Fourier transform to obtain u
@@ -99,11 +88,11 @@ end
 function get_current!(u,S,par)
     Nx, dx, Np, dp, v, m, e = par
     F = reshape(u,(Nx,Np+1))
-    for i in 1:Nx
-        S[i] = 0
-        @inbounds for j in 1:Np
+    @threads  for i in 1:Nx
+        @inbounds S[i] = 0
+        for j in 1:Np
             #p = get_p(j, dp, Np)/m
-            S[i] += e * F[i,j]* v[j] * dp
+            @inbounds    S[i] += e * F[i,j]* v[j] * dp
         end
     end
     return S
@@ -164,7 +153,7 @@ function get_E_energy(u,par)
     for i in 1:Nx
         E_E += F[i,end]^2 * dx
     end
-    return E_E/8/π
+    return E_E/2
 end
 
 
@@ -273,18 +262,22 @@ given once and for all. v = p/m/sqrt(1+(p/m)^2)
 function F!(du,u,t,p_F)
     dx, dp, Nx, Np, v, S, dvx, dvp = p_F 
     par = (Nx, dx, Np, dp, v, m, e)
-    par_Dx = (Nx, dx, dvx)
-    par_Dp = (Np, dp, dvp)
+    #par_Dx = (Nx, dx, dvx)
+    #par_Dp = (Np, dp, dvp)
+    par_Dx_ts = (Nx, dx)
+    par_Dp_ts = (Np, dp)
     get_current!(u,S,par)
     F = reshape(u,(Nx,Np+1))
     #du .= 0.0 # no es necesario pues toma valores en el primer loop.
     dF = reshape(du,(Nx,Np+1))
-    @inbounds for j ∈ 1:Np
-        dF[:,j] = - v[j] * D2x_Per(F[:,j], par_Dx)
+    @threads for j ∈ 1:Np
+        #dF[:,j] = - v[j] * D2x_Per(F[:,j], par_Dx)
+        @inbounds dF[:,j] = - v[j] * D4x_Per_ts(F[:,j], par_Dx_ts)
     end
-    @inbounds for i ∈ 1:Nx
-        dF[i,1:Np] += - e * F[i,Np+1] * D2x_SBP(F[i,1:Np], par_Dp) 
-        dF[i,Np+1] =  - 4π * S[i] 
+    @threads for i ∈ 1:Nx
+        #dF[i,1:Np] += - e * F[i,Np+1] * D2x_SBP(F[i,1:Np], par_Dp)
+        @inbounds dF[i,1:Np] += - e * F[i,Np+1] * D4x_SBP_ts(F[i,1:Np], par_Dp_ts,Qd) 
+        @inbounds dF[i,Np+1] =  - S[i] 
     end
     return du[:]
 end
