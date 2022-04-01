@@ -272,10 +272,12 @@ function F!(du,u,t,p_F)
     dF = reshape(du,(Nx,Np+1))
     @threads for j ∈ 1:Np
         #dF[:,j] = - v[j] * D2x_Per(F[:,j], par_Dx)
+        #@inbounds dF[:,j] = - v[j] * D2x_Per_ts(F[:,j], par_Dx_ts)
         @inbounds dF[:,j] = - v[j] * D4x_Per_ts(F[:,j], par_Dx_ts)
     end
     @threads for i ∈ 1:Nx
         #dF[i,1:Np] += - e * F[i,Np+1] * D2x_SBP(F[i,1:Np], par_Dp)
+        #@inbounds dF[i,1:Np] += - e * F[i,Np+1] * D2x_SBP_ts(F[i,1:Np], par_Dp_ts) 
         @inbounds dF[i,1:Np] += - e * F[i,Np+1] * D4x_SBP_ts(F[i,1:Np], par_Dp_ts,Qd) 
         @inbounds dF[i,Np+1] =  - S[i] 
     end
