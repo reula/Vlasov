@@ -200,7 +200,7 @@ end
 """
 Plots the values of a matrix as a surface plot.
 """
-function plot_matrix(A::Matrix{Float64}; fc=:ocean, linealpha=0.3, fillalpha=0.5, camera=(60,40))
+function plot_matrix(A::Matrix{Float64}; fc=:ocean, linealpha=0.3, fillalpha=0.5, camera=(60,40), title = "")
     default(size=(600,600)
 #, fc=:thermal
 #, fc=:heat
@@ -212,7 +212,7 @@ function plot_matrix(A::Matrix{Float64}; fc=:ocean, linealpha=0.3, fillalpha=0.5
     (n,m) = size(A)
     x, y = 1:n, 1:m
     z = Surface((x,y)->A[x,y], x, y)
-    surface(x,y,z, linealpha = linealpha, fillalpha=fillalpha, display_option=Plots.GR.OPTION_SHADED_MESH, camera=camera)
+    surface(x,y,z, linealpha = linealpha, fillalpha=fillalpha, display_option=Plots.GR.OPTION_SHADED_MESH, camera=camera, title = title)
 end
 
 
