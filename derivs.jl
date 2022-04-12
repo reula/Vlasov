@@ -22,7 +22,7 @@ function D4x_Per(v,par_Dx)
     return dv[:]
 end
 
-function D2x_Per_ts(v,par_Dx)
+function D2x_Per_ts(v,par_Dx) #threads safe version
     N, dx = par_Dx
     dv = Vector{Float64}(undef,N)
     dv[1] = (v[2] - v[N])/dx/2
@@ -46,6 +46,8 @@ function D4x_Per_ts(v,par_Dx)
     return dv[:]
 end
 
+const h_00_2 = 1/2
+
 function D2x_SBP(v,par_Dx)
     N, dx, dv = par_Dx
     dv[1] = (v[2] - v[1])/dx
@@ -56,7 +58,7 @@ function D2x_SBP(v,par_Dx)
     return dv[:]
 end
 
-function D2x_SBP_ts(v,par_Dx_st)
+function D2x_SBP_ts(v,par_Dx_st) #threads safe version
     N, dx = par_Dx_st
     dv = Vector{Float64}(undef,N)
     dv[1] = (v[2] - v[1])/dx
@@ -73,6 +75,7 @@ const Qd = [-24/17 59/34 -4/17 -3/34    0  0
             -1/2   0    1/2    0      0  0
             8/86  -59/86  0   59/86  -8/86 0
             3/98   0   -59/98  0 32/49  -4/49]
+const h_00_Qd = 17/48
 
 function D4x_SBP(v,par_Dx,Qd)
     N, dx, dv = par_Dx
