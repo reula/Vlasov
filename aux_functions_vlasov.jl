@@ -260,7 +260,7 @@ We include as parameters some vector for holding data and also the velocity vect
 given once and for all. v = p/m/sqrt(1+(p/m)^2)
 """
 function F!(du,u,t,p_F)
-    dx, dp, Nx, Np, v, S, dvx, dvp = p_F 
+    dx, dp, Nx, Np, v, S, dvx, dvp, D_order = p_F 
     par = (Nx, dx, Np, dp, v, m, e)
     #par_Dx = (Nx, dx, dvx)
     #par_Dp = (Np, dp, dvp)
@@ -270,17 +270,40 @@ function F!(du,u,t,p_F)
     F = reshape(u,(Nx,Np+1))
     #du .= 0.0 # no es necesario pues toma valores en el primer loop.
     dF = reshape(du,(Nx,Np+1))
-    @threads for j ∈ 1:Np
-        #dF[:,j] = - v[j] * D2x_Per(F[:,j], par_Dx)
-        #@inbounds dF[:,j] = - v[j] * D2x_Per_ts(F[:,j], par_Dx_ts)
-        @inbounds dF[:,j] = - v[j] * D4x_Per_ts(F[:,j], par_Dx_ts)
+    if D_order == 2 
+        h_00 = 1/2
+        σ = 1/2/h_00/dp
+        @threads for j ∈ 1:Np
+            @inbounds dF[:,j] = - v[j] * D2x_Per_ts(F[:,j], par_Dx_ts)
+        end
+        @threads for i ∈ 1:Nx
+            @inbounds dF[i,1:Np] += - e * F[i,Np+1] * D2x_SBP_ts(F[i,1:Np], par_Dp_ts) 
+            if - e * F[i,Np+1] < 0
+                dF[i,1] += - e * F[i,Np+1] * σ * F[i,1]
+            else
+                dF[i,Np] +=  e * F[i,Np+1] * σ * F[i,Np]
+            end
+            @inbounds dF[i,Np+1] =  - S[i] 
+        end
+    elseif D_order == 4
+        h_00 = 17/48
+        σ = 1/2/h_00/dp
+        @threads for j ∈ 1:Np
+            @inbounds dF[:,j] = - v[j] * D4x_Per_ts(F[:,j], par_Dx_ts)
+        end
+        @threads for i ∈ 1:Nx
+            @inbounds dF[i,1:Np] += - e * F[i,Np+1] * D4x_SBP_ts(F[i,1:Np], par_Dp_ts,Qd) 
+            if - e * F[i,Np+1] < 0
+                dF[i,1] += - e * F[i,Np+1] * σ * F[i,1]
+            else
+                dF[i,Np] +=  e * F[i,Np+1] * σ * F[i,Np]
+            end
+            @inbounds dF[i,Np+1] =  - S[i] 
+        end
+    else
+        error("Order not defined")
     end
-    @threads for i ∈ 1:Nx
-        #dF[i,1:Np] += - e * F[i,Np+1] * D2x_SBP(F[i,1:Np], par_Dp)
-        #@inbounds dF[i,1:Np] += - e * F[i,Np+1] * D2x_SBP_ts(F[i,1:Np], par_Dp_ts) 
-        @inbounds dF[i,1:Np] += - e * F[i,Np+1] * D4x_SBP_ts(F[i,1:Np], par_Dp_ts,Qd) 
-        @inbounds dF[i,Np+1] =  - S[i] 
-    end
+    
     return du[:]
 end
 
