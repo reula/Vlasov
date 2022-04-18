@@ -337,7 +337,7 @@ end
 counter_streams_rel_dist(x, p, (m, θ, v))
     we make a double peaked distribution around velocities u = gamma_v(1, +,-v)
 """
-function counter_streams_rel_dist(x, p, (m, θ, v, α, k))
+function counter_streams_rel_dist(x, p, (m, θ, α, k, v))
     p = p/m
     γ = sqrt(1+p^2)
     γv = 1/sqrt(1-v^2)
