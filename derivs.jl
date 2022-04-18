@@ -109,3 +109,11 @@ function D4x_SBP_ts(v,par_Dx,Qd)
     dv[N-3] = -(v[N]*Qd[4,1] + v[N-2]*Qd[4,3] + v[N-4]*Qd[4,5] + v[N-5]*Qd[4,6])/dx
     return dv[:]
 end
+
+
++struct par_dev
+    order::Unsigned
+    N::Int64
+    dx::Float64
+    Q
+end

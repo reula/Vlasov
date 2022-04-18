@@ -147,7 +147,7 @@ end
 
 
 function get_E_energy(u,par)
-    Nx, dx = par
+    Nx, dx, Np, dp = par= par
     F = reshape(u,(Nx,Np+1))
     E_E = 0
     for i in 1:Nx
