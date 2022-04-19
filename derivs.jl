@@ -111,7 +111,7 @@ function D4x_SBP_ts(v,par_Dx,Qd)
 end
 
 
-+struct par_dev
+struct Par_dev
     order::Unsigned
     N::Int64
     dx::Float64

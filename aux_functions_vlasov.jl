@@ -328,7 +328,7 @@ function thermal_rel_dist(p, θ = 1, m = 1)
     WARNING THEY ARE NOT NORMALIZED!
 """
 function thermal_rel_dist(x, p, (m, θ))
-    γ = sqrt(1+p^2/m^2) - 1
+    γ = sqrt(1+p^2/m^2) - 1 #take out a constant to make the function better behaved
     return exp(- γ/θ)/4/π/m
     #falta la función de Bessel!
 end
@@ -339,12 +339,24 @@ counter_streams_rel_dist(x, p, (m, θ, v))
 """
 function counter_streams_rel_dist(x, p, (m, θ, α, k, v))
     p = p/m
-    γ = sqrt(1+p^2)
+    γ = sqrt(1+p^2) - 1 #take out a constant to make the function better behaved
     γv = 1/sqrt(1-v^2)
-    return (exp(- γv*(γ + v*p)/θ) + exp(- γv*(γ - v*p)/θ))*exp(1/θ)/8/π/m* (1. + α *cos(k*x))
+    return (exp(- γv*(γ + v*p)/θ) + exp(- γv*(γ - v*p)/θ))/8/π/m* (1. + α *cos(k*x))
 end
 
 
+
+struct Grid
+    Nx::Int64
+    Np::Int64
+    Lx::Float64
+    Lp::Float64
+    Per_x::Bool
+    Per_p::Bool
+    dx::Float64
+    dp::Float64
+    order:: Unsigned
+end
 
 
 
