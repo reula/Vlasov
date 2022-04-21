@@ -95,7 +95,7 @@ function get_current!(u,S,par)
             @inbounds    S[i] += e * F[i,j]* v[j] * dp
         end
     end
-    return S
+    return S * dx
 end
 
 function get_density!(u,ρ,par)
@@ -147,13 +147,13 @@ end
 
 
 function get_E_energy(u,par)
-    Nx, dx, Np, dp = par= par
+    Nx, dx, Np, dp = par
     F = reshape(u,(Nx,Np+1))
     E_E = 0
     for i in 1:Nx
-        E_E += F[i,end]^2 * dx
+        E_E += F[i,end]^2 
     end
-    return E_E/2
+    return E_E/2 * dx
 end
 
 
@@ -283,7 +283,7 @@ function F!(du,u,t,p_F)
             else
                 dF[i,Np] +=  e * F[i,Np+1] * σ * F[i,Np]
             end
-            @inbounds dF[i,Np+1] =  - S[i] 
+            @inbounds dF[i,Np+1] =  - S[i]
         end
     elseif D_order == 4
         h_00 = 17/48
