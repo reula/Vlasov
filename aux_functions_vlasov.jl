@@ -92,10 +92,11 @@ function get_current!(u,S,par)
         @inbounds S[i] = 0
         for j in 1:Np
             #p = get_p(j, dp, Np)/m
-            @inbounds    S[i] += e * F[i,j]* v[j] * dp
+            @inbounds    S[i] += F[i,j]* v[j]
         end
+        S[i] = S[i] * e * dp
     end
-    return S * dx
+    return S
 end
 
 function get_density!(u,ρ,par)
@@ -104,19 +105,20 @@ function get_density!(u,ρ,par)
     for i in 1:Nx
         ρ[i] = 0
         for j in 1:Np  
-            ρ[i] += e * F[i,j] * dp
+            ρ[i] += F[i,j]
         end
+        ρ[i] = ρ[i]* e * dp
     end
     return ρ
 end
 
-function get_total_density!(ρ,par)
+function get_total_charge(ρ,par)
     Nx, dx = par
-    n0 = 0.0
+    Q = 0.0
     for i in 1:Nx
-        n0 += ρ[i] * dx
+        Q += ρ[i]
     end
-    return n0 
+    return Q * dx
 end
 
 function get_K_energy!(u,E_K,par)
@@ -126,8 +128,9 @@ function get_K_energy!(u,E_K,par)
         E_K[i] = 0.0
         for j in 1:Np  
             p = get_p(j, dp, Np)/m # relativistic expression!
-            E_K[i] +=  m*sqrt(1 + p^2) * F[i,j] * dp
+            E_K[i] +=  (sqrt(1 + p^2)-1) * F[i,j]
         end
+        E_K[i] = E_K[i]/m*dp
     end
     return E_K
 end
@@ -242,13 +245,14 @@ function generate_initial_data!(f, u, pars_f, pars)
     ρ = zeros(Nx)
     ϕ = zeros(Nx)
     get_density!(u, ρ, (Nx, dx, Np, dp, m, e))
-    n0 = get_total_density!(ρ,(Nx, dx))
-    println("n0 = $(n0)")
-    global u = u/n0/e # normalize the distribution to value 1 for density.
+    Q = get_total_charge(ρ,(Nx, dx))
+    println("Q = $(Q)")
+    global u = u/(Q/e)*Lx # normalize the distribution to value 1 for density.
     get_density!(u, ρ, (Nx, dx, Np, dp, m, e))
-    n0 = get_total_density!(ρ,(Nx, dx))
-    println("n0 = $(n0)")
-    get_ϕ!(ϕ, ρ .- e*n0, κ); # the charge is negative
+    Q = get_total_charge!(ρ,(Nx, dx))
+    println("n0 = $(Q/Lx/e)")
+    println("total charge = $(sum(ρ .- Q/Lx)*dx)")
+    get_ϕ!(ϕ, ρ .- Q/Lx, κ); # the charge is negative
     u[Nx*Np+1:Nx*(Np+1)] = get_E_from_ϕ!(ϕ, E,dx)
     return u
 end
