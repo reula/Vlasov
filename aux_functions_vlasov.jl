@@ -110,7 +110,7 @@ function get_density!(u,ρ,par)
     return ρ
 end
 
-function get_total_density!(ρ,par)
+function get_total_charge!(ρ,par)
     Nx, dx = par
     n0 = 0.0
     for i in 1:Nx
