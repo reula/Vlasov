@@ -249,7 +249,7 @@ function generate_initial_data!(f, u, pars_f, pars)
     println("Q = $(Q)")
     global u = u/(Q/e)*Lx # normalize the distribution to value 1 for density.
     get_density!(u, ρ, (Nx, dx, Np, dp, m, e))
-    Q = get_total_charge!(ρ,(Nx, dx))
+    Q = get_total_charge(ρ,(Nx, dx))
     println("n0 = $(Q/Lx/e)")
     println("total charge = $(sum(ρ .- Q/Lx)*dx)")
     get_ϕ!(ϕ, ρ .- Q/Lx, κ); # the charge is negative
