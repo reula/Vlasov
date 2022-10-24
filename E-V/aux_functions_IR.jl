@@ -41,7 +41,7 @@ function F!(du,u,p,t)
     #dh = D * h
     mul!(dh,D,h)
     #dh = D * h - σ*Δ * h
-    @. dh = dh + (- (g-2)* (χ₊)^2 + 4χ₊*χ₋ + g* (χ₋)^2 ) /f^2/x^2
+    @. dh += (- (g-2)* (χ₊)^2 + 4χ₊*χ₋ + g* (χ₋)^2 ) /f^2/x^2
     dh[end] = dh[end] - 1.0/right_boundary_weight(D) *h[end] #penalty BC
     mul!(dh,Δ,h,-σ,true)
 
