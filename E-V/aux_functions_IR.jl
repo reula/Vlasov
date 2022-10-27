@@ -10,7 +10,7 @@ Evolution function for the scalar wave system.
 """
 function F!(du,u,p,t)
     # second order version
-    D, Δ, x, dx, A, ω, τ, σ = p
+    D, Δ, x, A, ω, τ, σ = p
     
     f = @view u[1:N]
     g = @view u[N+1:2N]
@@ -57,8 +57,8 @@ function F!(du,u,p,t)
     @. dχ₋ = (f-2)/f * dχ₋ + 2χ₋ *(2x*(f-2)*h + 2 - g -f)/f^2/x + 8χ₋*(χ₊)^2/f^3/x - χ₊/x
     
     if f[1]<2.0
-        #dχ₋[1] += (f[1]-2)/f[1]/left_boundary_weight(D) *(χ₋[1] + χ₊[1]) #penalty BC
-        dχ₋[1] += (f[1]-2)/f[1]/left_boundary_weight(D) * χ₋[1] #penalty BC
+        dχ₋[1] += ((f[1]-2)/f[1]*χ₋[1] - χ₊[1])/left_boundary_weight(D) #penalty BC to use when no black hole will be created
+        #dχ₋[1] += (f[1]-2)/f[1]/left_boundary_weight(D) * χ₋[1] #penalty BC
     end
     mul!(dχ₋,Δ,χ₋,-σ,true)
 
@@ -88,3 +88,5 @@ function constraints!(C,u,D)
     @. Cg += - 2g*(h*f*x - (χ₊)^2 + (χ₋)^2)/f/x
     #C = [Cf;Cg]
 end
+
+@. m(r,f,g) = r*(1+(f-2)/g)/2
