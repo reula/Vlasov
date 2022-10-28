@@ -89,6 +89,19 @@ function constraints!(C,u,D)
     #C = [Cf;Cg]
 end
 
+function constraints_filter!(C,u,D)
+    constraints!(C,u,D)
+    N = length(x)
+    ff = zeros(N)
+    f = @view u[1:N]
+    Cf = @view C[1:N]
+    Cg = @view C[N+1:2N]
+    ff = map(x -> x <= 2 ? 1.0 : 0.0, f)
+    @. Cf *= ff
+    @. Cg *= ff
+    return C
+end
+
 @. m(r,f,g) = r*(1+(f-2)/g)/2
 
 function s_b(t,p)
