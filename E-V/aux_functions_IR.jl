@@ -10,7 +10,7 @@ Evolution function for the scalar wave system.
 """
 function F!(du,u,p,t)
     # second order version
-    D, Δ, x, A, ω, τ, σ = p
+    D, Δ, σ, x, gb, p_gb = p
     
     f = @view u[1:N]
     g = @view u[N+1:2N]
@@ -49,7 +49,7 @@ function F!(du,u,p,t)
     mul!(dχ₊,D,χ₊) 
     #dχ₊ = D * χ₊ - σ*Δ * χ₊
     @. dχ₊ += - (f-2)* χ₋ /f/x
-    dχ₊[end] = dχ₊[end] - 1.0/right_boundary_weight(D) * (χ₊[end] - A*sin(ω*t)*exp(-t/τ)) #penalty BC
+    dχ₊[end] = dχ₊[end] - 1.0/right_boundary_weight(D) * (χ₊[end] - gb(t,p_gb)) #penalty BC
     mul!(dχ₊,Δ,χ₊,-σ,true)
 
     #dχ₋ = D * χ₋
@@ -90,3 +90,13 @@ function constraints!(C,u,D)
 end
 
 @. m(r,f,g) = r*(1+(f-2)/g)/2
+
+function s_b(t,p)
+    A,ω,τ,tf = p
+    return (t<tf) ? A*sin(ω*t)*exp(-t/τ) : 0.0
+end
+
+function b_b(t,p)
+    A, t0, t1, order = p
+    return (t0 - t)*(t - t1) >= 0 ? A*(t0 - t)^(order)*(t - t1)^(order)*(2/(t0-t1))^(2order) : 0.0
+end
