@@ -56,8 +56,9 @@ function F!(du,u,p,t)
     mul!(dχ₋,D, χ₋)
     @. dχ₋ = (f-2)/f * dχ₋ + 2χ₋ *(2x*(f-2)*h + 2 - g -f)/f^2/x + 8χ₋*(χ₊)^2/f^3/x - χ₊/x
     
-    if f[1]<2.0
-        dχ₋[1] += ((f[1]-2)/f[1]*χ₋[1] - χ₊[1])/left_boundary_weight(D) #penalty BC to use when no black hole will be created
+    if f[1]-2.0 <= 0.0
+        #dχ₋[1] += ((f[1]-2)/f[1]*χ₋[1] - χ₊[1])/left_boundary_weight(D) #penalty BC to use when no black hole will be created. This preserves $\phi_t$.
+        dχ₋[1] += (f[1]-2)/f[1]*(χ₋[1] - χ₊[1])/left_boundary_weight(D) #penalty BC to use when no black hole will be created. This preserves $\phi_r$.
         #dχ₋[1] += (f[1]-2)/f[1]/left_boundary_weight(D) * χ₋[1] #penalty BC
     end
     mul!(dχ₋,Δ,χ₋,-σ,true)
