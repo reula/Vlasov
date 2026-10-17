@@ -12,5 +12,20 @@ We solve the equations:
 
 Here we do it in one dimension.
 
+## Repository hygiene
+
+Run data (`Results/`, `*.jld2`), reference books/papers (`*.pdf`) and generated
+figures/animations (`E-V/Images/`, `*_fps5.gif`) are intentionally **not** tracked.
+Keep them outside the repository (or in the ignored `Results/` directory).
+
+Notebook outputs are stripped automatically when committing. Configure the
+filter once per clone:
+
+```bash
+git config filter.nbclean.clean 'jupyter nbconvert --to notebook --stdin --stdout --ClearOutputPreprocessor.enabled=True'
+git config filter.nbclean.smudge cat
+git config filter.nbclean.required true
+```
+
 
 

@@ -1,3 +1,17 @@
-
+# OS / editor
 .DS_Store
-Results/l_two_streams_1000_400_v_02_n4_o4_Th005.jld2
+*.swp
+*~
+.ipynb_checkpoints/
+
+# Simulation output / run data — kept outside the repo
+Results/
+*.jld2
+*.jld
+
+# Reference books/papers — kept outside the repo
+*.pdf
+
+# Generated figures / animations from runs
+E-V/Images/
+*_fps5.gif
